@@ -3,17 +3,9 @@ import java.util.Scanner;
 public class Library {
 	static final int NUMBER_OF_ALL_BOOKS = 50;
 	static final int NUMBER_OF_ALL_MEMEBERS = 50;
-	static final int MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER = 5;
-	String[] books = new String[NUMBER_OF_ALL_BOOKS];
-	String[] booksNames = new String[books.length];
-	int[] booksIds = new int[books.length];
-	int[] booksCount = new int[books.length];
-	String[] members = new String[NUMBER_OF_ALL_MEMEBERS];
-	String[] membersNames = new String[members.length];
-	String[] membersBirthDates = new String[members.length];
-	int[] membersIds = new int[members.length];
-	int[][] membersBooks = new int[members.length][MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER];
-	int[] membersNumberOfBorrowedBooks = new int[members.length];
+	private Book[] books = new Book[NUMBER_OF_ALL_BOOKS];
+	private int[] booksCount = new int[books.length];
+	private Member[] members = new Member[NUMBER_OF_ALL_MEMEBERS];
 
 	int numberOfAddedBooks = 0;
 	int bookId = 1001;
@@ -21,134 +13,113 @@ public class Library {
 	int memberId = 2002;
 
 	public void addBook(String name, int count) {
-		if (numberOfAddedBooks < NUMBER_OF_ALL_BOOKS) {
-			booksNames[numberOfAddedBooks] = name;
-			booksIds[numberOfAddedBooks] = bookId;
-			booksCount[numberOfAddedBooks] = count;
-			books[numberOfAddedBooks] = "ID: " + bookId + " Name: " + name + " Number of Available books: " + count;
-			System.out.println("New book is added: " + books[numberOfAddedBooks]);
-			numberOfAddedBooks++;
-			bookId++;
-		} else
+		if (numberOfAddedBooks == NUMBER_OF_ALL_BOOKS) {
 			System.out.println("All books are added.");
+			return;
+		}
+		Book book = new Book();
+		book.setId(bookId);
+		book.setName(name);
+		books[numberOfAddedBooks] = book;
+		booksCount[numberOfAddedBooks] = count;
+		numberOfAddedBooks++;
+		bookId++;
+		System.out.println(
+				"New book is added: " + "ID: " + book.getId() + " Name: " + book.getName() + " Count: " + count);
 	}
 
 	void addMember(String name, String birthDate) {
-		if (numberOfAddedMembers < NUMBER_OF_ALL_MEMEBERS) {
-			membersNames[numberOfAddedMembers] = name;
-			membersBirthDates[numberOfAddedMembers] = birthDate;
-			membersIds[numberOfAddedMembers] = memberId;
-			members[numberOfAddedMembers] = "ID: " + memberId + " Name: " + name + " Birthdate: "
-					+ membersBirthDates[numberOfAddedMembers];
-			System.out.println("New member is added: " + members[numberOfAddedMembers]);
-			numberOfAddedMembers++;
-			memberId++;
-		} else
+		if (numberOfAddedMembers == NUMBER_OF_ALL_MEMEBERS) {
 			System.out.println("All members are added.");
+			return;
+		}
+		Member member = new Member();
+		member.setId(memberId);
+		member.setName(name);
+		member.setBirthdate(birthDate);
+		members[numberOfAddedMembers] = member;
+		numberOfAddedMembers++;
+		memberId++;
+		System.out.println("New member is added: " + "ID: " + member.getId() + " Name: " + member.getName()
+				+ " Birthdate: " + member.getBirthdate());
 	}
 
 	void borrowBook(int memberId, int bookId) {
-		int foundMember = -1;
-		for (int i = 0; i < membersIds.length; i++)
-			if (membersIds[i] == memberId) {
-				foundMember = i;
+		Member foundMember = null;
+		for (int i = 0; i < numberOfAddedMembers; i++)
+			if (members[i] != null && members[i].getId() == memberId) {
+				foundMember = members[i];
 				break;
 			}
 
-		if (foundMember == -1) {
+		if (foundMember == null) {
 			System.out.println("Member not found!");
 			return;
 		}
 
-		int foundBook = -1;
-		for (int i = 0; i < booksIds.length; i++) {
-			if (booksIds[i] == bookId) {
-				foundBook = i;
+		Book foundBook = null;
+		for (int i = 0; i < numberOfAddedBooks; i++) {
+			if (books[i].getId() == bookId) {
+				foundBook = books[i];
 				break;
 			}
 		}
 
-		if (foundBook == -1) {
+		if (foundBook == null) {
 			System.out.println("Book not exist");
 			return;
 		}
 
-		for (int i = 0; i < membersNumberOfBorrowedBooks[foundMember]; i++)
-			if (membersBooks[foundMember][i] == bookId) {
-				System.out.println("This book has already been borrowed by the member.");
-				return;
-			}
+		for (int i = 0; i < numberOfAddedBooks; i++)
+			if (books[i].getId() == bookId)
+				if (booksCount[i] == 0) {
+					System.out.println(
+							"Book is not available: " + "ID: " + foundBook.getId() + " Name: " + foundBook.getName());
+					return;
+				}
 
-		if (membersNumberOfBorrowedBooks[foundMember] >= MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER) {
-			System.out.println("MAX books are borrowed by: " + members[foundMember]);
-			return;
+		if (foundMember.borrowBook(foundBook) == true) {
+			for (int i = 0; i < numberOfAddedBooks; i++)
+				if (books[i].getId() == bookId) {
+					booksCount[i]--;
+					break;
+				}
 		}
-
-		if (booksCount[foundBook] == 0) {
-			System.out.println("Book is not available: " + books[foundBook]);
-			return;
-		}
-
-		int borrowedBookIndex = -1;
-		for (int i = 0; i < MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER; i++)
-			if (membersBooks[foundMember][i] <= 0) {
-				borrowedBookIndex = i;
-				break;
-			}
-		membersBooks[foundMember][borrowedBookIndex] = bookId;
-		membersNumberOfBorrowedBooks[foundMember]++;
-		booksCount[foundBook]--;
-		books[foundBook] = "ID: " + bookId + " Name: " + booksNames[foundBook] + " Number of Available books: "
-				+ booksCount[foundBook];
-		System.out.println("Book: " + books[foundBook] + " borrowed by Members: " + members[foundMember]);
 	}
 
 	void returnBook(int memberId, int bookId) {
-		int foundMember = -1;
-		for (int i = 0; i < membersIds.length; i++)
-			if (membersIds[i] == memberId) {
-				foundMember = i;
+		Member foundMember = null;
+		for (int i = 0; i < numberOfAddedMembers; i++)
+			if (members[i] != null && members[i].getId() == memberId) {
+				foundMember = members[i];
 				break;
 			}
 
-		if (foundMember == -1) {
+		if (foundMember == null) {
 			System.out.println("Member not found!");
 			return;
 		}
 
-		int foundBook = -1;
-		for (int i = 0; i < booksIds.length; i++) {
-			if (booksIds[i] == bookId) {
-				foundBook = i;
+		Book foundBook = null;
+		for (int i = 0; i < numberOfAddedBooks; i++) {
+			if (books[i].getId() == bookId) {
+				foundBook = books[i];
 				break;
 			}
 		}
 
-		if (foundBook == -1) {
+		if (foundBook == null) {
 			System.out.println("Book not exist");
 			return;
 		}
 
-		if (membersNumberOfBorrowedBooks[foundBook] == 0) {
-			System.out.println("No books are borrowed by: " + members[foundMember]);
-			return;
+		if (foundMember.returnBook(foundBook) == true) {
+			for (int i = 0; i < books.length; i++)
+				if (books[i] != null && books[i].getId() == bookId) {
+					booksCount[i]++;
+					break;
+				}
 		}
-		int returnedBookIndex = -1;
-		for (int i = 0; i < MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER; i++)
-			if (membersBooks[foundMember][i] == bookId) {
-				returnedBookIndex = i;
-				break;
-			}
-		if(returnedBookIndex == -1) {
-			System.out.println("This book is not borrowed by: " + members[foundMember]);
-			return;
-		}
-		membersBooks[foundMember][returnedBookIndex] = -1;
-		membersNumberOfBorrowedBooks[foundMember]--;
-		booksCount[foundBook]++;
-		books[foundBook] = "ID: " + bookId + " Name: " + booksNames[foundBook] + " Number of Available books: "
-				+ booksCount[foundBook];
-		System.out.println("Book: " + books[foundBook] + " returned by Members: " + members[foundMember]);
 	}
 
 	void showBooksStatus() {
@@ -158,7 +129,8 @@ public class Library {
 		}
 
 		for (int i = 0; i < numberOfAddedBooks; i++)
-			System.out.println("# "+books[i]);
+			System.out.println(
+					"# " + "ID: " + books[i].getId() + " Name: " + books[i].getName() + " Count: " + booksCount[i]);
 	}
 
 	void showMembersStatus() {
@@ -168,16 +140,22 @@ public class Library {
 		}
 
 		for (int i = 0; i < numberOfAddedMembers; i++) {
-			System.out.println("# "+ members[i]);
-			if (membersNumberOfBorrowedBooks[i] == 0) {
-				System.out.println("NOT borrowed any books.");
+			System.out.println("# " + "ID: " + members[i].getId() + " Name: " + members[i].getName() + " Birthdate: "
+					+ members[i].getBirthdate());
+			boolean isAnyBorrowedBook = false;
+			for (int j = 0; j < members[i].getBorrowedBooks().length; j++)
+				if (members[i].getBorrowedBooks()[j] != null) {
+					isAnyBorrowedBook = true;
+					break;
+				}
+			if (isAnyBorrowedBook == false) {
+				System.out.println("    NOT borrowed any books.");
 			} else {
 				System.out.println(" - List of Borrowed books: ");
-				for (int j = 0; j < MAX_NUMBER_OF_BORROWED_BOOKS_FOR_EACH_MEMBER; j++) {
-					for (int k = 0; k < numberOfAddedBooks; k++)
-						if (booksIds[k] == membersBooks[i][j])
-							System.out.println("   -"+books[k]);
-				}
+				for (int j = 0; j < members[i].getBorrowedBooks().length; j++)
+					if (members[i].getBorrowedBooks()[j] != null)
+						System.out.println("   -ID: " + members[i].getBorrowedBooks()[j].getId() + " Name: "
+								+ members[i].getBorrowedBooks()[j].getName());
 			}
 		}
 	}
