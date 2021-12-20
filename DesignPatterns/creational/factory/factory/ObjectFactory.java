@@ -6,6 +6,8 @@ import creational.factory.objects.ObjectTypeOne;
 import creational.factory.objects.ObjectTypeThree;
 import creational.factory.objects.ObjectTypeTwo;
 
+// this is single factory, if doesn't implement super factory, so it called Factory Method
+// but with implementing super factory, it will be Abstract Factory Method.
 public class ObjectFactory implements Factory<String, ObjectInterface> {
 
 	@Override
